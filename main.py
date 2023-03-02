@@ -21,16 +21,12 @@ else:
 print(tgenv)
 
 
-
-# Lots of console output
-debug = True
-
 # User Session timeout
 timstart = 300
 tim = 1
 
 #Defaults
-user = ""
+user = "Chert"
 running = False
 cache = None
 qcache = None
@@ -61,23 +57,6 @@ def start(bot, update):
     global tim
     global botname
     global username
-    left = str(tim)
-    if tim == 1:
-        chat_log = None
-        cache = None
-        qcache = None
-        botname = 'MagaGPT'
-        username = 'MagaGPT_bot'
-        update.message.reply_text('Hi')
-        return 
-    else:
-        update.message.reply_text('I am currently talking to someone else. Can you please wait ' + left + ' seconds?')
-        return
-
-
-def help(bot, update):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('[/reset] resets the conversation,\n [/retry] retries the last output,\n [/username name] sets your name to the bot, default is "Human",\n [/botname name] sets the bots character name, default is "AI"')
 
 
 def reset(bot, update):
@@ -198,9 +177,6 @@ def wait(bot, update, botname, username, new):
         update.message.reply_text('I am currently talking to someone else. Can you please wait ' + left + ' seconds?')
 
 
-################
-#Main functions#
-################
 def limit(text, max):
     if (len(text) >= max):
         inv = max * 10
@@ -220,12 +196,11 @@ def ask(username, botname, question, chat_log=None):
     t = '[' + ampm + '] '
     prompt = f'{chat_log}{t}{username}: {question}\n{t}{botname}:'
     response = completion.create(
-        prompt=prompt, engine="text-davinci-003", stop=['\n'], temperature=0.7,
-        top_p=1, frequency_penalty=0, presence_penalty=0.6, best_of=3,
-        max_tokens=500)
+        prompt=prompt, engine="text-davinci-003", stop=['\n'], temperature=0.5,
+        top_p=1, frequency_penalty=0.5, presence_penalty=0, best_of=3,
+        max_tokens=1000)
     answer = response.choices[0].text.strip()
     return answer
-    # fp = 15 pp= 1 top_p = 1 temp = 0.9
 
 def append_interaction_to_chat_log(username, botname, question, answer, chat_log=None):
     if chat_log is None:
@@ -240,54 +215,32 @@ def interact(bot, update, botname, username, new):
     global chat_log
     global cache
     global qcache
-    print("==========START==========")
     tex = update.message.text
     text = str(tex)
     analyzer = SentimentIntensityAnalyzer()
     if new != True:
         vs = analyzer.polarity_scores(text)
-        if debug == True:
-            print("Sentiment of input:\n")
-            print(vs)
         if vs['neg'] > 1:
             update.message.reply_text('Can we talk something else?')
             return
     if new == True:
-        if debug == True:
-            print("Chat_LOG Cache is...")
-            print(cache)
-            print("Question Cache is...")
-            print(qcache)
         chat_log = cache
         question = qcache
     if new != True:
         question = text
         qcache = question
         cache = chat_log
-    #update.message.reply_text('Computing...')
     try:
         answer = ask(username, botname, question, chat_log)
-        if debug == True:
-            print("Input:\n" + question)
-            print("Output:\n" + answer)
-            print("====================")
         stripes = answer.encode(encoding=sys.stdout.encoding,errors='ignore')
         decoded = stripes.decode("utf-8")
         out = str(decoded)
         vs = analyzer.polarity_scores(out)
-        if debug == True:
-            print("Sentiment of output:\n")
-            print(vs)
         if vs['neg'] > 1:
             update.message.reply_text('I do not think I could provide you a good answer for this. Use /retry to get positive output.')
             return
         update.message.reply_text(out)
         chat_log = append_interaction_to_chat_log(username, botname, question, answer, chat_log)
-        if debug == True:
-            #### Print the chat log for debugging
-            print('-----PRINTING CHAT LOG-----')
-            print(chat_log)
-            print('-----END CHAT LOG-----')
     except Exception as e:
             print(e)
             errstr = str(e)
@@ -307,7 +260,7 @@ def main():
     dp = updater.dispatcher
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
+#    dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("reset", reset))
     dp.add_handler(CommandHandler("retry", retry))
     # on noncommand i.e message - echo the message on Telegram
