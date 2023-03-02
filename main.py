@@ -35,7 +35,7 @@ running = False
 cache = None
 qcache = None
 chat_log = None
-botname = 'Maga'
+botname = 'MagaGPT'
 username = 'MagaGPT_bot'
 # Max chat log length (A token is about 4 letters and max tokens is 2048)
 max = int(3000)
@@ -66,7 +66,7 @@ def start(bot, update):
         chat_log = None
         cache = None
         qcache = None
-        botname = 'Maga'
+        botname = 'MagaGPT'
         username = 'MagaGPT_bot'
         update.message.reply_text('Hi')
         return 
@@ -77,7 +77,7 @@ def start(bot, update):
 
 def help(bot, update):
     """Send a message when the command /help is issued."""
-    update.message.reply_text('[/reset] resets the conversation,\n [/retry] retries the last output')
+    update.message.reply_text('[/reset] resets the conversation,\n [/retry] retries the last output,\n [/username name] sets your name to the bot, default is "Human",\n [/botname name] sets the bots character name, default is "AI"')
 
 
 def reset(bot, update):
@@ -93,7 +93,7 @@ def reset(bot, update):
         chat_log = None
         cache = None
         qcache = None
-        botname = 'Maga'
+        botname = 'MagaGPT'
         username = 'MagaGPT_bot'
         update.message.reply_text('Bot has been reset, send a message!')
         return
@@ -101,7 +101,7 @@ def reset(bot, update):
         chat_log = None
         cache = None
         qcache = None
-        botname = 'Maga'
+        botname = 'MagaGPT'
         username = 'MagaGPT_bot'
         update.message.reply_text('Bot has been reset, send a message!')
         return 
@@ -128,13 +128,42 @@ def retry(bot, update):
         chat_log = None
         cache = None
         qcache = None
-        botname = 'Maga'
+        botname = 'MagaGPT'
         username = 'MagaGPT_bot'
         update.message.reply_text('Send a message!')
         return 
     else:
         update.message.reply_text('I am currently talking to someone else. Can you please wait ' + left + ' seconds?')
         return
+
+def runn(bot, update):
+    """Send a message when a message is received."""
+    new = False
+    global botname
+    global username
+    if "/botname " in update.message.text:
+        try:
+            string = update.message.text
+            charout = string.split("/botname ",1)[1]
+            botname = charout
+            response = "The bot character name set to: " + botname
+            update.message.reply_text(response)
+        except Exception as e:
+            update.message.reply_text(e)
+        return
+    if "/username " in update.message.text:
+        try:
+            string = update.message.text
+            userout = string.split("/username ",1)[1]
+            username = userout
+            response = "Your character name set to: " + username
+            update.message.reply_text(response)
+        except Exception as e:
+            update.message.reply_text(e)
+        return
+    else:
+        comput = threading.Thread(target=interact, args=(bot, update, botname, username, new,))
+        comput.start()
 
 
 def wait(bot, update, botname, username, new):
@@ -161,7 +190,7 @@ def wait(bot, update, botname, username, new):
                 qcache = None
                 user = ""
                 username = 'MagaGPT_bot'
-                botname = 'Maga'
+                botname = 'MagaGPT'
                 update.message.reply_text('Timer has run down, bot has been reset to defaults.')
                 running = False
     else:
@@ -191,8 +220,9 @@ def ask(username, botname, question, chat_log=None):
     t = '[' + ampm + '] '
     prompt = f'{chat_log}{t}{username}: {question}\n{t}{botname}:'
     response = completion.create(
-        prompt=prompt, engine="text-davinci-003", stop=['\n'], temperature=0.5,
-        top_p=1, frequency_penalty=0.5, presence_penalty=0, max_tokens=1000)
+        prompt=prompt, engine="text-davinci-003", stop=['\n'], temperature=0.7,
+        top_p=1, frequency_penalty=0, presence_penalty=0.6, best_of=3,
+        max_tokens=500)
     answer = response.choices[0].text.strip()
     return answer
     # fp = 15 pp= 1 top_p = 1 temp = 0.9
@@ -280,6 +310,8 @@ def main():
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("reset", reset))
     dp.add_handler(CommandHandler("retry", retry))
+    # on noncommand i.e message - echo the message on Telegram
+    dp.add_handler(MessageHandler(Filters.text, runn))
     # log all errors
     dp.add_error_handler(error)
     # Start the Bot
