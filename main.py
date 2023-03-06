@@ -10,7 +10,6 @@ if aienv == None:
     openai.api_key = "ENTER YOUR API KEY HERE"
 else:
     openai.api_key = aienv
-print(aienv)
 
 #Telegram bot key
 tgenv = os.getenv('TELEGRAM_KEY')
@@ -18,7 +17,6 @@ if tgenv == None:
     tgkey = "ENTER YOUR TELEGRAM TOKEN HERE"
 else:
     tgkey = tgenv
-print(tgenv)
 
 
 # User Session timeout
@@ -72,16 +70,12 @@ def reset(bot, update):
         chat_log = None
         cache = None
         qcache = None
-        botname = 'MagaGPT'
-        username = 'MagaGPT_bot'
         update.message.reply_text('Bot has been reset, send a message!')
         return
     if tim == 1:
         chat_log = None
         cache = None
         qcache = None
-        botname = 'MagaGPT'
-        username = 'MagaGPT_bot'
         update.message.reply_text('Bot has been reset, send a message!')
         return 
     else:
@@ -107,8 +101,6 @@ def retry(bot, update):
         chat_log = None
         cache = None
         qcache = None
-        botname = 'MagaGPT'
-        username = 'MagaGPT_bot'
         update.message.reply_text('Send a message!')
         return 
     else:
@@ -168,8 +160,6 @@ def wait(bot, update, botname, username, new):
                 cache = None
                 qcache = None
                 user = ""
-                username = 'MagaGPT_bot'
-                botname = 'MagaGPT'
                 update.message.reply_text('Timer has run down, bot has been reset to defaults.')
                 running = False
     else:
@@ -196,8 +186,8 @@ def ask(username, botname, question, chat_log=None):
     t = '[' + ampm + '] '
     prompt = f'{chat_log}{t}{username}: {question}\n{t}{botname}:'
     response = completion.create(
-        prompt=prompt, engine="text-davinci-003", stop=['\n'], temperature=0.5,
-        top_p=1, frequency_penalty=0.5, presence_penalty=0, best_of=3,
+        prompt=prompt, engine="text-davinci-003", temperature=0.5,
+        top_p=1, frequency_penalty=0.5, presence_penalty=0,
         max_tokens=1000)
     answer = response.choices[0].text.strip()
     return answer
@@ -260,7 +250,6 @@ def main():
     dp = updater.dispatcher
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
-#    dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("reset", reset))
     dp.add_handler(CommandHandler("retry", retry))
     # on noncommand i.e message - echo the message on Telegram
