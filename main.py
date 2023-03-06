@@ -35,18 +35,9 @@ username = 'MagaGPT_bot'
 max = int(3000)
 
 
-# Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-
 completion = openai.Completion()
 
 
-##################
-#Command handlers#
-##################
 def start(bot, update):
     """Send a message when the command /start is issued."""
     global chat_log
@@ -77,31 +68,6 @@ def reset(bot, update):
         cache = None
         qcache = None
         update.message.reply_text('Bot has been reset, send a message!')
-        return 
-    else:
-        update.message.reply_text('I am currently talking to someone else. Can you please wait ' + left + ' seconds?')
-        return
-
-
-def retry(bot, update):
-    """Send a message when the command /retry is issued."""
-    global chat_log
-    global cache
-    global qcache
-    global tim
-    global botname
-    global username
-    left = str(tim)
-    if user == update.message.from_user.id:
-        new = True
-        comput = threading.Thread(target=wait, args=(bot, update, botname, username, new,))
-        comput.start()
-        return
-    if tim == 1:
-        chat_log = None
-        cache = None
-        qcache = None
-        update.message.reply_text('Send a message!')
         return 
     else:
         update.message.reply_text('I am currently talking to someone else. Can you please wait ' + left + ' seconds?')
@@ -237,11 +203,6 @@ def interact(bot, update, botname, username, new):
             update.message.reply_text(errstr)
 
 
-def error(bot, update):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update)
-
-
 def main():
     """Start the bot."""
 
@@ -251,11 +212,8 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("reset", reset))
-    dp.add_handler(CommandHandler("retry", retry))
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, runn))
-    # log all errors
-    dp.add_error_handler(error)
     # Start the Bot
     updater.start_polling()
    
